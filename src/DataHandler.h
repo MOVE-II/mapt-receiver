@@ -31,6 +31,8 @@ private:
 public:
     DataHandler();
     void addData(tuple<char*, int> data);
+    tuple<char*, int> popData();
+    int getNumStoredData();
 };
 
 

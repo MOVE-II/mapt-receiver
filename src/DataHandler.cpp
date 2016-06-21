@@ -27,3 +27,23 @@ void DataHandler::addData(tuple<char*, int> data) {
     dataList.push_back(data);
     listMutex.unlock();
 }
+
+/**
+ * Returns first element in the list. If the list is empty, returns a tuple containing a nullptr and a size value of 0.
+ */
+tuple<char *, int> DataHandler::popData() {
+    if(dataList.empty())
+        return make_tuple((char*) nullptr, 0);
+    listMutex.lock();
+    tuple<char*, int> returnData = dataList.front();
+    dataList.pop_front();
+    listMutex.unlock();
+    return returnData;
+}
+
+/**
+ * Returns the amount of Data packets currently stored.
+ */
+int DataHandler::getNumStoredData() {
+    return dataList.size();
+}
