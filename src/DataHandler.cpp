@@ -17,15 +17,21 @@
 
 #include "DataHandler.h"
 
-DataHandler::DataHandler() :
+DataHandler::DataHandler(S3TPHandler& s3tpHandler) :
     listMutex(),
+    passthroughMode(false),
+    s3tpHandler(s3tpHandler),
     dataList() {
 }
 
 void DataHandler::addData(tuple<char*, int> data) {
-    listMutex.lock();
-    dataList.push_back(data);
-    listMutex.unlock();
+    if(passthroughMode) {
+        s3tpHandler.send(get<0>(data), get<1>(data));
+    } else {
+        listMutex.lock();
+        dataList.push_back(data);
+        listMutex.unlock();
+    }
 }
 
 /**
@@ -46,4 +52,8 @@ tuple<char *, int> DataHandler::popData() {
  */
 int DataHandler::getNumStoredData() {
     return dataList.size();
+}
+
+void DataHandler::setPassthroughMode(bool mode) {
+    passthroughMode = mode;
 }

@@ -19,6 +19,7 @@
 #include <thread>
 #include <iostream>
 #include "UDPListener.h"
+#include "S3TPHandler.h"
 
 using namespace std;
 
@@ -32,7 +33,8 @@ void runUDPReceiverThread(DataHandler* dataHandler) {
 }
 
 int main(int argc, char* argv[]) {
-    DataHandler dataHandler;
+    S3TPHandler s3tpHandler;
+    DataHandler dataHandler(s3tpHandler);
     thread udpReceiverThread(runUDPReceiverThread, &dataHandler);
     udpReceiverThread.join();
     return 0;

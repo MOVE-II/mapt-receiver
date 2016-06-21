@@ -21,15 +21,19 @@
 #include <list>
 #include <tuple>
 #include <mutex>
+#include "S3TPHandler.h"
 
 using namespace std;
 
 class DataHandler {
 private:
     mutex listMutex;
+    bool passthroughMode;
+    S3TPHandler& s3tpHandler;
     list<tuple<char*, int>> dataList;
 public:
-    DataHandler();
+    DataHandler(S3TPHandler& s3tpHandler);
+    void setPassthroughMode(bool mode);
     void addData(tuple<char*, int> data);
     tuple<char*, int> popData();
     int getNumStoredData();
