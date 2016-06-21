@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
+#include <tuple>
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -24,11 +25,11 @@
 
 using namespace std;
 
-UDPListener::UDPListener(int port) :
+UDPListener::UDPListener(DataHandler& dataHandler, int port) :
     port(port),
     maxPacketSize(1500),
     socketFileDescriptor(-1),
-    dataList() {
+    dataHandler(dataHandler) {
     memset(&sockaddrIn, 0, sizeof(sockaddrIn));
     initializeSocket();
 }
@@ -44,7 +45,7 @@ void UDPListener::receiveData() {
         if(dataReceived > 0) {
             char* data = (char*) malloc(dataReceived);
             memcpy(data, buffer, dataReceived);
-            //TODO: Hand data over to DataHandler
+            dataHandler.addData(make_tuple(data, dataReceived));
         } else if(dataReceived == -1) {
             string error = string("Failed to receive data from socket: ") + strerror(errno);
             throw error;

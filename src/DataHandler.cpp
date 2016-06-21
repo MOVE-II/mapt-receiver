@@ -15,28 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef MAPT_RECEIVER_UDPLISTENER_H
-#define MAPT_RECEIVER_UDPLISTENER_H
-
-#include <list>
-#include <arpa/inet.h>
 #include "DataHandler.h"
 
-using namespace std;
+DataHandler::DataHandler() :
+    listMutex(),
+    dataList() {
+}
 
-class UDPListener {
-private:
-    UDPListener();
-    void initializeSocket();
-    int port;
-    const int maxPacketSize;
-    int socketFileDescriptor;
-    struct sockaddr_in sockaddrIn;
-    DataHandler& dataHandler;
-public:
-    UDPListener(DataHandler& dataHandler, int port);
-    void receiveData();
-};
-
-
-#endif //MAPT_RECEIVER_UDPLISTENER_H
+void DataHandler::addData(tuple<char*, int> data) {
+    listMutex.lock();
+    dataList.push_back(data);
+    listMutex.unlock();
+}
