@@ -15,6 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
+#include <string>
+#include <thread>
+#include <iostream>
+#include "UDPListener.h"
+
+using namespace std;
+
+void runUDPReceiverThread(DataHandler* dataHandler) {
+    try {
+        UDPListener udpListener(*dataHandler, 1337);
+        udpListener.receiveData();
+    } catch (string error) {
+        cerr << "ERROR: " << error << endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
+    DataHandler dataHandler;
+    thread udpReceiverThread(runUDPReceiverThread, &dataHandler);
+    udpReceiverThread.join();
     return 0;
 }
