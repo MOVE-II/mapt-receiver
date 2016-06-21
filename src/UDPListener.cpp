@@ -26,6 +26,7 @@ using namespace std;
 
 UDPListener::UDPListener(int port) :
     port(port),
+    maxPacketSize(1500),
     socketFileDescriptor(-1),
     dataList() {
     memset(&sockaddrIn, 0, sizeof(sockaddrIn));
@@ -36,7 +37,19 @@ UDPListener::UDPListener(int port) :
  * Receive data via UDP and store it by passing it to the DataHandler.
  */
 void UDPListener::receiveData() {
-
+    int dataReceived;
+    char buffer[maxPacketSize];
+    while(true) {
+        dataReceived = recvfrom(socketFileDescriptor, buffer, maxPacketSize, 0, nullptr, nullptr);
+        if(dataReceived > 0) {
+            char* data = (char*) malloc(dataReceived);
+            memcpy(data, buffer, dataReceived);
+            //TODO: Hand data over to DataHandler
+        } else if(dataReceived == -1) {
+            string error = string("Failed to receive data from socket: ") + strerror(errno);
+            throw error;
+        }
+    }
 }
 
 /**

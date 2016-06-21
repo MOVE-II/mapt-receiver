@@ -28,6 +28,7 @@ private:
     UDPListener();
     void initializeSocket();
     int port;
+    const int maxPacketSize;
     int socketFileDescriptor;
     struct sockaddr_in sockaddrIn;
     list<char*> dataList;
