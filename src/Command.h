@@ -28,6 +28,7 @@ private:
     int type;
 public:
     Command(char* rawCommand);
+    int getType();
 };
 
 

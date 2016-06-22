@@ -21,3 +21,7 @@ Command::Command(char *rawCommand) :
     type(-1) {
     //TODO: Set command type to correct value as defined in header
 }
+
+int Command::getType() {
+    return type;
+}
