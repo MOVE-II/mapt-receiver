@@ -26,7 +26,7 @@ DataHandler::DataHandler(S3TPHandler& s3tpHandler) :
 
 void DataHandler::addData(tuple<char*, int> data) {
     if(passthroughMode) {
-        s3tpHandler.send(get<0>(data), get<1>(data));
+        sendData(data);
     } else {
         listMutex.lock();
         dataList.push_back(data);
@@ -62,8 +62,17 @@ void DataHandler::sendAllStoredData() {
     listMutex.lock();
     tuple<char*, int> data = popData();
     while(get<1>(data) != 0) {
-        s3tpHandler.send(get<0>(data), get<1>(data));
+        sendData(data);
         data = popData();
     }
     listMutex.unlock();
+}
+
+void DataHandler::sendData(tuple<char *, int> data) {
+    char* binaryData = get<0>(data);
+    int len = get<1>(data);
+    if(len > 0) {
+        s3tpHandler.send(binaryData, len);
+        delete binaryData;
+    }
 }

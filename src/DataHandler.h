@@ -31,12 +31,13 @@ private:
     bool passthroughMode;
     S3TPHandler& s3tpHandler;
     list<tuple<char*, int>> dataList;
+    tuple<char*, int> popData();
+    void sendData(tuple<char*, int> data);
 public:
     DataHandler(S3TPHandler& s3tpHandler);
     void sendAllStoredData();
     void setPassthroughMode(bool mode);
     void addData(tuple<char*, int> data);
-    tuple<char*, int> popData();
     int getNumStoredData();
 };
 
