@@ -19,7 +19,12 @@
 #define MAPT_RECEIVER_S3TPHANDLER_H
 
 
+#include <stdint.h>
+
 class S3TPHandler {
+private:
+    int s3tpSocket;
+    const uint16_t maptDataPort;
 public:
     S3TPHandler();
     void send(char* data, int len);

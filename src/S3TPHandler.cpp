@@ -16,9 +16,15 @@
  **/
 
 #include "S3TPHandler.h"
+#include <s3tp/s3tp.h>
 
-S3TPHandler::S3TPHandler() {
+S3TPHandler::S3TPHandler() :
+    s3tpSocket(-1),
+    maptDataPort(1337) { //TODO: Add correct port!
+    s3tpSocket = s3tp_create();
+    s3tp_connect(s3tpSocket, maptDataPort);
 }
 
 void S3TPHandler::send(char *data, int len) {
+    s3tp_send(s3tpSocket, data, len);
 }
