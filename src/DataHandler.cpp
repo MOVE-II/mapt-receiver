@@ -57,3 +57,13 @@ int DataHandler::getNumStoredData() {
 void DataHandler::setPassthroughMode(bool mode) {
     passthroughMode = mode;
 }
+
+void DataHandler::sendAllStoredData() {
+    listMutex.lock();
+    tuple<char*, int> data = popData();
+    while(get<1>(data) != 0) {
+        s3tpHandler.send(get<0>(data), get<1>(data));
+        data = popData();
+    }
+    listMutex.unlock();
+}

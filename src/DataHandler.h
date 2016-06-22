@@ -33,6 +33,7 @@ private:
     list<tuple<char*, int>> dataList;
 public:
     DataHandler(S3TPHandler& s3tpHandler);
+    void sendAllStoredData();
     void setPassthroughMode(bool mode);
     void addData(tuple<char*, int> data);
     tuple<char*, int> popData();
