@@ -17,7 +17,7 @@
 
 #include "CommandHandler.h"
 
-CommandHandler::CommandHandler(DataHandler dataHandler) :
+CommandHandler::CommandHandler(DataHandler& dataHandler) :
     dataHandler(dataHandler) {
 }
 

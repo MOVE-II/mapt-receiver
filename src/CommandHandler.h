@@ -26,7 +26,7 @@ private:
     CommandHandler();
     DataHandler& dataHandler;
 public:
-    CommandHandler(DataHandler dataHandler);
+    CommandHandler(DataHandler& dataHandler);
     void handleCommand(Command command);
 };
 
