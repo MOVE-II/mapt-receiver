@@ -20,6 +20,7 @@
 #include <iostream>
 #include "UDPListener.h"
 #include "S3TPHandler.h"
+#include "S3TPListener.h"
 
 using namespace std;
 
@@ -28,14 +29,28 @@ void runUDPReceiverThread(DataHandler* dataHandler) {
         UDPListener udpListener(*dataHandler, 1337);
         udpListener.receiveData();
     } catch (string error) {
-        cerr << "ERROR: " << error << endl;
+        cerr << "ERROR in UDPReceiver thread: " << error << endl;
+        exit(1);
+    }
+}
+
+void runS3TPListenerThread(S3TPListener* s3tpListener) {
+    try {
+        s3tpListener->waitForCommands();
+    } catch (string error) {
+        cerr << "ERROR in S3TPListener thread: " << error << endl;
+        exit(1);
     }
 }
 
 int main(int argc, char* argv[]) {
     S3TPHandler s3tpHandler;
     DataHandler dataHandler(s3tpHandler);
+    CommandHandler commandHandler(dataHandler);
+    S3TPListener s3tpListener(s3tpHandler, commandHandler);
     thread udpReceiverThread(runUDPReceiverThread, &dataHandler);
+    thread s3tpListenerThread(runS3TPListenerThread, &s3tpListener);
     udpReceiverThread.join();
+    s3tpListenerThread.join();
     return 0;
 }
