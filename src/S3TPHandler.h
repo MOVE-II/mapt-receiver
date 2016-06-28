@@ -28,6 +28,7 @@ private:
 public:
     S3TPHandler();
     void send(char* data, int len);
+    int receive(char* data, int maxLen);
 };
 
 

@@ -28,3 +28,7 @@ S3TPHandler::S3TPHandler() :
 void S3TPHandler::send(char *data, int len) {
     s3tp_send(s3tpSocket, data, len);
 }
+
+int S3TPHandler::receive(char *data, int maxLen) {
+    return s3tp_receive(s3tpSocket, data, maxLen);
+}
