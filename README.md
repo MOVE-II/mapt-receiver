@@ -1,11 +1,13 @@
 # mapt-receiver
-This program is responsible for receiving the data from the MAPT payload and on request sending it to the ground station via S3TP.
+This program is responsible for receiving the data from the MAPT payload and sending it to the ground station via S3TP. For this purpose, the MAPT payload establishes a TCP connection to this program, which acts as a TCP server.
 
-The program will run with two threads:
+The program will run with three threads:
 
- * One thread is waiting for the TCP packets from the Payload and stores them in a list. Alternatively, if the DataHandler was set into Passthrough mode by the groundstation, the data is directly forwarded to the Groundstation via S3TP.
+ * One thread is waiting for the TCP packets from the Payload and stores them in a binary file in non-volatile memory.
 
- * Another thread waits for commands from the groundstation, sent via S3TP, and on request send all the received data back to the groundstation.
+ * Another thread waits for commands from the groundstation, sent via S3TP, and handles them accordingly. These commands have yet to be defined, and could for example give the current progress.
+
+ * A third thread is continuously sending all the stored data down to the ground station via S3TP.
 
 ##### MAPT data package format
 The data packages sent from the MAPT payload have the following structure:
