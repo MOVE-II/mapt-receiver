@@ -26,7 +26,7 @@ using namespace std;
 
 TCPListener::TCPListener(MAPTPacketParser& maptPacketParser, int port) :
     port(port),
-    maxPacketSize(1500),
+    packetSize(3616),
     serverSocketFileDescriptor(-1),
     maptPacketParser(maptPacketParser) {
     memset(&sockaddrIn, 0, sizeof(sockaddrIn));
@@ -37,8 +37,8 @@ TCPListener::TCPListener(MAPTPacketParser& maptPacketParser, int port) :
  * Receive data via UDP and store it by passing it to the DataHandler.
  */
 void TCPListener::receiveData() {
-    int dataReceived;
-    char buffer[maxPacketSize];
+    int dataReceivedLen;
+    char buffer[packetSize];
     while(true) {
         socklen_t sockaddrInSize = sizeof(sockaddrIn);
         int clientSocketFileDescriptor = accept(serverSocketFileDescriptor, (struct sockaddr*) &sockaddrIn, &sockaddrInSize);
@@ -46,12 +46,12 @@ void TCPListener::receiveData() {
             string error = string("Failed to accept client: ") + strerror(errno);
             throw error;
         }
-        dataReceived = recvfrom(serverSocketFileDescriptor, buffer, maxPacketSize, 0, nullptr, nullptr);
-        if(dataReceived > 0) {
-            char* data = (char*) malloc(dataReceived);
-            memcpy(data, buffer, dataReceived);
-            maptPacketParser.parseData(data, dataReceived);
-        } else if(dataReceived == -1) {
+        dataReceivedLen = recvfrom(serverSocketFileDescriptor, buffer, packetSize, 0, nullptr, nullptr);
+        if(dataReceivedLen > 0) {
+            char* data = (char*) malloc(dataReceivedLen);
+            memcpy(data, buffer, dataReceivedLen);
+            maptPacketParser.parseData(data, dataReceivedLen);
+        } else if(dataReceivedLen == -1) {
             string error = string("Failed to receive data from socket: ") + strerror(errno);
             throw error;
         }
