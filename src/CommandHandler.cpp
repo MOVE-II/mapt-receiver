@@ -23,9 +23,10 @@ CommandHandler::CommandHandler(DataHandler& dataHandler) :
 
 void CommandHandler::handleCommand(Command command) {
     switch (command.getType()) {
-        case SEND_DATA_TO_GROUND_STATION_CMD : dataHandler.sendAllStoredData(); break;
-        case ACTIVATE_DATA_PASSTHROUGH_MODE_CMD : dataHandler.setPassthroughMode(true); break;
-        case DEACTIVATE_DATA_PASSTHROUGH_MODE_CMD : dataHandler.setPassthroughMode(false); break;
+        //TODO: Define new commands
+        //case SEND_DATA_TO_GROUND_STATION_CMD : dataHandler.sendAllStoredData(); break;
+        //case ACTIVATE_DATA_PASSTHROUGH_MODE_CMD : dataHandler.setPassthroughMode(true); break;
+        //case DEACTIVATE_DATA_PASSTHROUGH_MODE_CMD : dataHandler.setPassthroughMode(false); break;
         default: break;//Implement unknown command routine
     }
 }

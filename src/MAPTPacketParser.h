@@ -28,7 +28,7 @@ private:
 
 public:
     MAPTPacketParser(DataHandler& dataHandler);
-    void parseData(char* data, int len);
+    void parseData(char* data);
     ~MAPTPacketParser();
 };
 

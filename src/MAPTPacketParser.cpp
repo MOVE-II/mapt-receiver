@@ -22,8 +22,8 @@ MAPTPacketParser::MAPTPacketParser(DataHandler &dataHandler) :
     dataHandler(dataHandler) {
 }
 
-void MAPTPacketParser::parseData(char *data, int len) {
-    dataHandler.addData(make_tuple(data, len));
+void MAPTPacketParser::parseData(char *data) {
+    dataHandler.addData(data);
 }
 
 MAPTPacketParser::~MAPTPacketParser() {

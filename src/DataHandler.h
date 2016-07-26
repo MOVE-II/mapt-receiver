@@ -21,24 +21,24 @@
 #include <list>
 #include <tuple>
 #include <mutex>
+#include <fstream>
 #include "S3TPHandler.h"
+
+#define MAPT_PACKAGE_SIZE 3616
 
 using namespace std;
 
 class DataHandler {
 private:
-    mutex listMutex;
-    bool passthroughMode;
+    const char*dataFilePath;
+    mutex fileMutex;
+    fstream dataFileStream;
     S3TPHandler& s3tpHandler;
-    list<tuple<char*, int>> dataList;
-    tuple<char*, int> popData();
-    void sendData(tuple<char*, int> data);
+    void popData(char* data);
 public:
-    DataHandler(S3TPHandler& s3tpHandler);
-    void sendAllStoredData();
-    void setPassthroughMode(bool mode);
-    void addData(tuple<char*, int> data);
-    int getNumStoredData();
+    DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath);
+    void sendData();
+    void addData(char* data);
 };
 
 

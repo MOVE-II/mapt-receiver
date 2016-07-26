@@ -29,7 +29,6 @@ private:
     TCPListener();
     void initializeSocket();
     int port;
-    const int packetSize;
     int serverSocketFileDescriptor;
     struct sockaddr_in sockaddrIn;
     MAPTPacketParser& maptPacketParser;

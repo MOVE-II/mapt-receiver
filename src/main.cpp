@@ -21,14 +21,16 @@
 #include "TCPListener.h"
 #include "S3TPListener.h"
 
+#define DATAFILE_PATH "/tmp/maptData.bin"
+
 using namespace std;
 
-void runUDPReceiverThread(MAPTPacketParser* maptPacketParser) {
+void runTCPReceiverThread(MAPTPacketParser *maptPacketParser) {
     try {
         TCPListener tcpListener(*maptPacketParser, 1337);
         tcpListener.receiveData();
     } catch (string error) {
-        cerr << "ERROR in UDPReceiver thread: " << error << endl;
+        cerr << "ERROR in TCPReceiver thread: " << error << endl;
         exit(1);
     }
 }
@@ -43,14 +45,19 @@ void runS3TPListenerThread(S3TPListener* s3tpListener) {
 }
 
 int main(int argc, char* argv[]) {
-    S3TPHandler s3tpHandler;
-    DataHandler dataHandler(s3tpHandler);
-    MAPTPacketParser maptPacketParser(dataHandler);
-    CommandHandler commandHandler(dataHandler);
-    S3TPListener s3tpListener(s3tpHandler, commandHandler);
-    thread udpReceiverThread(runUDPReceiverThread, &maptPacketParser);
-    thread s3tpListenerThread(runS3TPListenerThread, &s3tpListener);
-    udpReceiverThread.join();
-    s3tpListenerThread.join();
+    //TODO Start thread that continuously send the received data to the ground station
+    try {
+        S3TPHandler s3tpHandler;
+        DataHandler dataHandler(s3tpHandler, DATAFILE_PATH);
+        MAPTPacketParser maptPacketParser(dataHandler);
+        CommandHandler commandHandler(dataHandler);
+        S3TPListener s3tpListener(s3tpHandler, commandHandler);
+        thread tcpReceiverThread(runTCPReceiverThread, &maptPacketParser);
+        thread s3tpListenerThread(runS3TPListenerThread, &s3tpListener);
+        tcpReceiverThread.join();
+        s3tpListenerThread.join();
+    } catch(string error) {
+        cerr << "ERROR catched in main: " << error << endl;
+    }
     return 0;
 }

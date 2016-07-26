@@ -15,64 +15,60 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
+#include <string.h>
+#include <iostream>
 #include "DataHandler.h"
 
-DataHandler::DataHandler(S3TPHandler& s3tpHandler) :
-    listMutex(),
-    passthroughMode(false),
-    s3tpHandler(s3tpHandler),
-    dataList() {
-}
-
-void DataHandler::addData(tuple<char*, int> data) {
-    if(passthroughMode) {
-        sendData(data);
-    } else {
-        listMutex.lock();
-        dataList.push_back(data);
-        listMutex.unlock();
+DataHandler::DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath) :
+    dataFilePath(dataFilePath),
+    fileMutex(),
+    dataFileStream(dataFilePath, ios::in | ios::out | ios::binary | ios::ate),
+    s3tpHandler(s3tpHandler){
+    if(dataFileStream.fail()) {
+        string error = "DataFileStream for mapt data storage could not be created.";
+        throw error;
+    }
+    streampos fileSize = dataFileStream.tellp();
+    if(fileSize != 0) {
+        //Ensures that the data is still aligned to the mapt package size
+        int packageOffset = (int) (fileSize % MAPT_PACKAGE_SIZE);
+        if(packageOffset != 0) {
+            cerr << "Data in file not aligned! ADDED aligning bytes" << endl;
+            int numZeroesToAdd = MAPT_PACKAGE_SIZE - packageOffset;
+            char* zeroes = (char*) malloc(numZeroesToAdd * sizeof(char));
+            memset(zeroes, 0xFE, numZeroesToAdd);
+            dataFileStream.write(zeroes, numZeroesToAdd);
+        }
+        dataFileStream.seekg(0, dataFileStream.end);
     }
 }
 
 /**
- * Returns first element in the list. If the list is empty, returns a tuple containing a nullptr and a size value of 0.
+ * Writes received data to disk
  */
-tuple<char *, int> DataHandler::popData() {
-    if(dataList.empty())
-        return make_tuple((char*) nullptr, 0);
-    listMutex.lock();
-    tuple<char*, int> returnData = dataList.front();
-    dataList.pop_front();
-    listMutex.unlock();
-    return returnData;
+void DataHandler::addData(char* data) {
+    fileMutex.lock();
+    dataFileStream.write(data, MAPT_PACKAGE_SIZE);
+    fileMutex.unlock();
+    delete data;
 }
 
 /**
- * Returns the amount of Data packets currently stored.
+ * Returns the next data package. Blocks until a package is available.
  */
-int DataHandler::getNumStoredData() {
-    return dataList.size();
+void DataHandler::popData(char* data) {
+    //TODO: wait if no data available
+    fileMutex.lock();
+    dataFileStream.read(data, MAPT_PACKAGE_SIZE);
+    fileMutex.unlock();
 }
 
-void DataHandler::setPassthroughMode(bool mode) {
-    passthroughMode = mode;
-}
-
-void DataHandler::sendAllStoredData() {
-    listMutex.lock();
-    tuple<char*, int> data = popData();
-    while(get<1>(data) != 0) {
-        sendData(data);
-        data = popData();
-    }
-    listMutex.unlock();
-}
-
-void DataHandler::sendData(tuple<char *, int> data) {
-    char* binaryData = get<0>(data);
-    int len = get<1>(data);
-    if(len > 0) {
-        s3tpHandler.send(binaryData, len);
-        delete binaryData;
-    }
+/**
+ * Wait for the next data package to be ready and send it down to earth
+ */
+void DataHandler::sendData() {
+    char* binaryData = (char*) malloc(MAPT_PACKAGE_SIZE * sizeof(char));
+    popData(binaryData);
+    s3tpHandler.send(binaryData, MAPT_PACKAGE_SIZE);
+    delete binaryData;
 }

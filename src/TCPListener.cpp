@@ -20,13 +20,13 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <errno.h>
+#include <iostream>
 #include "TCPListener.h"
 
 using namespace std;
 
 TCPListener::TCPListener(MAPTPacketParser& maptPacketParser, int port) :
     port(port),
-    packetSize(3616),
     serverSocketFileDescriptor(-1),
     maptPacketParser(maptPacketParser) {
     memset(&sockaddrIn, 0, sizeof(sockaddrIn));
@@ -38,7 +38,7 @@ TCPListener::TCPListener(MAPTPacketParser& maptPacketParser, int port) :
  */
 void TCPListener::receiveData() {
     int dataReceivedLen;
-    char buffer[packetSize];
+    char buffer[MAPT_PACKAGE_SIZE];
     while(true) {
         socklen_t sockaddrInSize = sizeof(sockaddrIn);
         int clientSocketFileDescriptor = accept(serverSocketFileDescriptor, (struct sockaddr*) &sockaddrIn, &sockaddrInSize);
@@ -46,14 +46,23 @@ void TCPListener::receiveData() {
             string error = string("Failed to accept client: ") + strerror(errno);
             throw error;
         }
-        dataReceivedLen = recvfrom(serverSocketFileDescriptor, buffer, packetSize, 0, nullptr, nullptr);
-        if(dataReceivedLen > 0) {
-            char* data = (char*) malloc(dataReceivedLen);
-            memcpy(data, buffer, dataReceivedLen);
-            maptPacketParser.parseData(data, dataReceivedLen);
-        } else if(dataReceivedLen == -1) {
-            string error = string("Failed to receive data from socket: ") + strerror(errno);
-            throw error;
+        bool clientConnected = true;
+        while(clientConnected) {
+            try{
+                dataReceivedLen = (int) recvfrom(clientSocketFileDescriptor, buffer, MAPT_PACKAGE_SIZE, 0, nullptr, nullptr);
+                //TODO: Receive bytes until a complete package of the defined langth was received
+                if(dataReceivedLen == MAPT_PACKAGE_SIZE) {
+                    char* data = (char*) malloc(MAPT_PACKAGE_SIZE);
+                    memcpy(data, buffer, MAPT_PACKAGE_SIZE);
+                    maptPacketParser.parseData(data);
+                } else if(dataReceivedLen <= 0) {
+                    string error = string("Failed to receive data from socket: ") + strerror(errno);
+                    throw error;
+                }
+            } catch (string error) {
+                clientConnected = false;
+                cerr << "Lost connection to client.... Waiting for new connection" << endl;
+            }
         }
     }
 }
@@ -62,8 +71,8 @@ void TCPListener::receiveData() {
  * Initializes the socket. On error, a string exception is thrown.
  */
 void TCPListener::initializeSocket() {
-    if(serverSocketFileDescriptor == -1) {
     serverSocketFileDescriptor = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if(serverSocketFileDescriptor == -1) {
         string error = string("Socket could not be initialized: ") + strerror(errno);
         throw error;
     }
