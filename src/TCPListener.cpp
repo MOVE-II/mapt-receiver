@@ -15,7 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#include <tuple>
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -25,11 +24,11 @@
 
 using namespace std;
 
-TCPListener::TCPListener(DataHandler& dataHandler, int port) :
+TCPListener::TCPListener(MAPTPacketParser& maptPacketParser, int port) :
     port(port),
     maxPacketSize(1500),
     serverSocketFileDescriptor(-1),
-    dataHandler(dataHandler) {
+    maptPacketParser(maptPacketParser) {
     memset(&sockaddrIn, 0, sizeof(sockaddrIn));
     initializeSocket();
 }
@@ -51,7 +50,7 @@ void TCPListener::receiveData() {
         if(dataReceived > 0) {
             char* data = (char*) malloc(dataReceived);
             memcpy(data, buffer, dataReceived);
-            dataHandler.addData(make_tuple(data, dataReceived));
+            maptPacketParser.parseData(data, dataReceived);
         } else if(dataReceived == -1) {
             string error = string("Failed to receive data from socket: ") + strerror(errno);
             throw error;

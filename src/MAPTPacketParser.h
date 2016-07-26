@@ -15,29 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef MAPT_RECEIVER_UDPLISTENER_H
-#define MAPT_RECEIVER_UDPLISTENER_H
+#ifndef MAPT_RECEIVER_MAPTPACKETPARSER_H
+#define MAPT_RECEIVER_MAPTPACKETPARSER_H
 
-#include <list>
-#include <arpa/inet.h>
-#include "MAPTPacketParser.h"
+#include "DataHandler.h"
 
-using namespace std;
 
-class TCPListener {
+class MAPTPacketParser {
 private:
-    TCPListener();
-    void initializeSocket();
-    int port;
-    const int maxPacketSize;
-    int serverSocketFileDescriptor;
-    struct sockaddr_in sockaddrIn;
-    MAPTPacketParser& maptPacketParser;
+    MAPTPacketParser();
+    DataHandler& dataHandler;
 
 public:
-    TCPListener(MAPTPacketParser& maptPacketParser, int port);
-    void receiveData();
+    MAPTPacketParser(DataHandler& dataHandler);
+    void parseData(char* data, int len);
+    ~MAPTPacketParser();
 };
 
 
-#endif //MAPT_RECEIVER_UDPLISTENER_H
+#endif //MAPT_RECEIVER_MAPTPACKETPARSER_H

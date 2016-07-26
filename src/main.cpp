@@ -19,15 +19,14 @@
 #include <thread>
 #include <iostream>
 #include "TCPListener.h"
-#include "S3TPHandler.h"
 #include "S3TPListener.h"
 
 using namespace std;
 
-void runUDPReceiverThread(DataHandler* dataHandler) {
+void runUDPReceiverThread(MAPTPacketParser* maptPacketParser) {
     try {
-        TCPListener udpListener(*dataHandler, 1337);
-        udpListener.receiveData();
+        TCPListener tcpListener(*maptPacketParser, 1337);
+        tcpListener.receiveData();
     } catch (string error) {
         cerr << "ERROR in UDPReceiver thread: " << error << endl;
         exit(1);
@@ -46,9 +45,10 @@ void runS3TPListenerThread(S3TPListener* s3tpListener) {
 int main(int argc, char* argv[]) {
     S3TPHandler s3tpHandler;
     DataHandler dataHandler(s3tpHandler);
+    MAPTPacketParser maptPacketParser(dataHandler);
     CommandHandler commandHandler(dataHandler);
     S3TPListener s3tpListener(s3tpHandler, commandHandler);
-    thread udpReceiverThread(runUDPReceiverThread, &dataHandler);
+    thread udpReceiverThread(runUDPReceiverThread, &maptPacketParser);
     thread s3tpListenerThread(runS3TPListenerThread, &s3tpListener);
     udpReceiverThread.join();
     s3tpListenerThread.join();
