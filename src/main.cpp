@@ -18,7 +18,7 @@
 #include <string>
 #include <thread>
 #include <iostream>
-#include "UDPListener.h"
+#include "TCPListener.h"
 #include "S3TPHandler.h"
 #include "S3TPListener.h"
 
@@ -26,7 +26,7 @@ using namespace std;
 
 void runUDPReceiverThread(DataHandler* dataHandler) {
     try {
-        UDPListener udpListener(*dataHandler, 1337);
+        TCPListener udpListener(*dataHandler, 1337);
         udpListener.receiveData();
     } catch (string error) {
         cerr << "ERROR in UDPReceiver thread: " << error << endl;

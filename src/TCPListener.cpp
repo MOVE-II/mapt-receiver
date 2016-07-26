@@ -21,14 +21,14 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <errno.h>
-#include "UDPListener.h"
+#include "TCPListener.h"
 
 using namespace std;
 
-UDPListener::UDPListener(DataHandler& dataHandler, int port) :
+TCPListener::TCPListener(DataHandler& dataHandler, int port) :
     port(port),
     maxPacketSize(1500),
-    socketFileDescriptor(-1),
+    serverSocketFileDescriptor(-1),
     dataHandler(dataHandler) {
     memset(&sockaddrIn, 0, sizeof(sockaddrIn));
     initializeSocket();
@@ -37,11 +37,17 @@ UDPListener::UDPListener(DataHandler& dataHandler, int port) :
 /**
  * Receive data via UDP and store it by passing it to the DataHandler.
  */
-void UDPListener::receiveData() {
+void TCPListener::receiveData() {
     int dataReceived;
     char buffer[maxPacketSize];
     while(true) {
-        dataReceived = recvfrom(socketFileDescriptor, buffer, maxPacketSize, 0, nullptr, nullptr);
+        socklen_t sockaddrInSize = sizeof(sockaddrIn);
+        int clientSocketFileDescriptor = accept(serverSocketFileDescriptor, (struct sockaddr*) &sockaddrIn, &sockaddrInSize);
+        if(clientSocketFileDescriptor == -1) {
+            string error = string("Failed to accept client: ") + strerror(errno);
+            throw error;
+        }
+        dataReceived = recvfrom(serverSocketFileDescriptor, buffer, maxPacketSize, 0, nullptr, nullptr);
         if(dataReceived > 0) {
             char* data = (char*) malloc(dataReceived);
             memcpy(data, buffer, dataReceived);
@@ -56,18 +62,22 @@ void UDPListener::receiveData() {
 /**
  * Initializes the socket. On error, a string exception is thrown.
  */
-void UDPListener::initializeSocket() {
-    socketFileDescriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if(socketFileDescriptor == -1) {
+void TCPListener::initializeSocket() {
+    if(serverSocketFileDescriptor == -1) {
+    serverSocketFileDescriptor = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         string error = string("Socket could not be initialized: ") + strerror(errno);
         throw error;
     }
     sockaddrIn.sin_family = AF_INET;
     sockaddrIn.sin_port = htons(port);
     sockaddrIn.sin_addr.s_addr = htonl(INADDR_ANY);
-    int rc = bind(socketFileDescriptor, (struct sockaddr*) &sockaddrIn, sizeof(sockaddrIn));
+    int rc = bind(serverSocketFileDescriptor, (struct sockaddr*) &sockaddrIn, sizeof(sockaddrIn));
     if(rc != 0) {
         string error = string("Could not bind socket to specified port: ") + strerror(errno);
+        throw error;
+    }
+    if(listen(serverSocketFileDescriptor, 1) != 0) {
+        string error = string("Could not set socket in listening mode: ") + strerror(errno);
         throw error;
     }
 }

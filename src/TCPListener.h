@@ -24,17 +24,17 @@
 
 using namespace std;
 
-class UDPListener {
+class TCPListener {
 private:
-    UDPListener();
+    TCPListener();
     void initializeSocket();
     int port;
     const int maxPacketSize;
-    int socketFileDescriptor;
+    int serverSocketFileDescriptor;
     struct sockaddr_in sockaddrIn;
     DataHandler& dataHandler;
 public:
-    UDPListener(DataHandler& dataHandler, int port);
+    TCPListener(DataHandler& dataHandler, int port);
     void receiveData();
 };
 
