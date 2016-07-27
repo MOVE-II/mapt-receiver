@@ -50,7 +50,6 @@ void DataHandler::addData(char* data) {
     fileMutex.lock();
     dataFileStream.write(data, MAPT_PACKAGE_SIZE);
     fileMutex.unlock();
-    delete data;
 }
 
 /**

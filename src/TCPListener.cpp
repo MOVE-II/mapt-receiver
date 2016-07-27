@@ -58,9 +58,7 @@ void TCPListener::receiveData() {
                         throw error;
                     }
                 }
-                char* data = (char*) malloc(MAPT_PACKAGE_SIZE);
-                memcpy(data, buffer, MAPT_PACKAGE_SIZE);
-                maptPacketParser.parseData(data);
+                maptPacketParser.parseData(buffer);
             } catch (string error) {
                 clientConnected = false;
                 cerr << "Error with connection to client: " << error << endl << "Waiting for new connection..." << endl;
