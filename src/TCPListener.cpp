@@ -48,20 +48,22 @@ void TCPListener::receiveData() {
         }
         bool clientConnected = true;
         while(clientConnected) {
+            size_t packageDataReceived = 0;
             try{
-                dataReceivedLen = (int) recvfrom(clientSocketFileDescriptor, buffer, MAPT_PACKAGE_SIZE, 0, nullptr, nullptr);
-                //TODO: Receive bytes until a complete package of the defined langth was received
-                if(dataReceivedLen == MAPT_PACKAGE_SIZE) {
-                    char* data = (char*) malloc(MAPT_PACKAGE_SIZE);
-                    memcpy(data, buffer, MAPT_PACKAGE_SIZE);
-                    maptPacketParser.parseData(data);
-                } else if(dataReceivedLen <= 0) {
-                    string error = string("Failed to receive data from socket: ") + strerror(errno);
-                    throw error;
+                while(packageDataReceived != MAPT_PACKAGE_SIZE) {
+                    dataReceivedLen = (int) recv(clientSocketFileDescriptor, buffer+packageDataReceived, MAPT_PACKAGE_SIZE-packageDataReceived, 0);
+                    packageDataReceived += dataReceivedLen;
+                    if(dataReceivedLen <= 0) {
+                        string error = string("Connection to client terminated.");
+                        throw error;
+                    }
                 }
+                char* data = (char*) malloc(MAPT_PACKAGE_SIZE);
+                memcpy(data, buffer, MAPT_PACKAGE_SIZE);
+                maptPacketParser.parseData(data);
             } catch (string error) {
                 clientConnected = false;
-                cerr << "Lost connection to client.... Waiting for new connection" << endl;
+                cerr << "Error with connection to client: " << error << endl << "Waiting for new connection..." << endl;
             }
         }
     }
