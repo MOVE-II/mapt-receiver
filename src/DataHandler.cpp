@@ -25,38 +25,7 @@ DataHandler::DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath) :
     fileMutex(),
     dataFileStream(),
     s3tpHandler(s3tpHandler){
-    if(!doesFileExist(dataFilePath)) {
-        cerr << "File " << dataFilePath << " doesn't exist. Creating..." << endl;
-        fstream createStream(dataFilePath, ios::out);
-        if(createStream.fail()) {
-            string error = string("File ") + dataFilePath + string(" doesn't exist and unable to create it!");
-            throw error;
-        }
-        createStream.close();
-    }
-    dataFileStream.open(dataFilePath, ios::in | ios::out | ios::binary | ios::ate);
-    if(dataFileStream.fail()) {
-        string error = "DataFileStream for mapt data storage could not be created.";
-        throw error;
-    }
-    streampos fileSize = dataFileStream.tellp();
-    if(fileSize != 0) {
-        //Ensures that the data is still aligned to the mapt package size
-        int packageOffset = (int) (fileSize % MAPT_PACKAGE_SIZE);
-        if(packageOffset != 0) {
-            cerr << "Data in file not aligned! ADDED aligning bytes" << endl;
-            int numZeroesToAdd = MAPT_PACKAGE_SIZE - packageOffset;
-            char* zeroes = (char*) malloc(numZeroesToAdd * sizeof(char));
-            memset(zeroes, 0xFE, numZeroesToAdd);
-            dataFileStream.write(zeroes, numZeroesToAdd);
-        }
-        dataFileStream.seekg(0, dataFileStream.end);
-    }
-}
-
-inline bool DataHandler::doesFileExist(const char* filePath) {
-    struct stat buffer;
-    return stat(filePath, &buffer) == 0;
+    initializeDataFile(dataFilePath);
 }
 
 /**
@@ -86,4 +55,49 @@ void DataHandler::sendData() {
     popData(binaryData);
     s3tpHandler.send(binaryData, MAPT_PACKAGE_SIZE);
     delete binaryData;
+}
+
+void DataHandler::createFileIfNotExisting(const char *dataFilePath) {
+    if(!doesFileExist(dataFilePath)) {
+        cerr << "File " << dataFilePath << " doesn't exist. Creating..." << endl;
+        fstream createStream(dataFilePath, ios_base::out);
+        if(createStream.fail()) {
+            string error = string("File ") + dataFilePath + string(" doesn't exist and unable to create it!");
+            throw error;
+        }
+        createStream.close();
+    }
+}
+
+void DataHandler::initializeDataFile(const char* dataFilePath) {
+    createFileIfNotExisting(dataFilePath);
+    dataFileStream.open(dataFilePath, ios_base::in | ios_base::out | ios_base::binary | ios_base::ate);
+    if(dataFileStream.fail()) {
+        string error = "DataFileStream for mapt data storage could not be created.";
+        throw error;
+    }
+    alignDataFile();
+}
+
+/**
+ * Ensures that the data in the data file is still aligned to the mapt package size
+ */
+void DataHandler::alignDataFile() {
+    streampos fileSize = dataFileStream.tellp();
+    if(fileSize != 0) {
+        int packageOffset = (int) (fileSize % MAPT_PACKAGE_SIZE);
+        if(packageOffset != 0) {
+            cerr << "Data in file not aligned! ADDED aligning bytes" << endl;
+            int numZeroesToAdd = MAPT_PACKAGE_SIZE - packageOffset;
+            char* zeroes = (char*) malloc(numZeroesToAdd * sizeof(char));
+            memset(zeroes, 0xFE, numZeroesToAdd);
+            dataFileStream.write(zeroes, numZeroesToAdd);
+        }
+        dataFileStream.seekg(0, dataFileStream.end);
+    }
+}
+
+inline bool DataHandler::doesFileExist(const char* filePath) {
+    struct stat buffer;
+    return stat(filePath, &buffer) == 0;
 }

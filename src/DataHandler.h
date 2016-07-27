@@ -35,11 +35,15 @@ private:
     fstream dataFileStream;
     S3TPHandler& s3tpHandler;
     void popData(char* data);
+    void alignDataFile();
     bool doesFileExist(const char* filePath);
+    void initializeDataFile(const char* dataFilePath);
+    void createFileIfNotExisting(const char* dataFilePath);
 public:
     DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath);
     void sendData();
     void addData(char* data);
+
 };
 
 
