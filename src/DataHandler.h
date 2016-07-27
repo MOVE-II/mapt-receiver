@@ -35,6 +35,7 @@ private:
     fstream dataFileStream;
     S3TPHandler& s3tpHandler;
     void popData(char* data);
+    bool doesFileExist(const char* filePath);
 public:
     DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath);
     void sendData();

@@ -17,13 +17,24 @@
 
 #include <string.h>
 #include <iostream>
+#include <sys/stat.h>
 #include "DataHandler.h"
 
 DataHandler::DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath) :
     dataFilePath(dataFilePath),
     fileMutex(),
-    dataFileStream(dataFilePath, ios::in | ios::out | ios::binary | ios::ate),
+    dataFileStream(),
     s3tpHandler(s3tpHandler){
+    if(!doesFileExist(dataFilePath)) {
+        cerr << "File " << dataFilePath << " doesn't exist. Creating..." << endl;
+        fstream createStream(dataFilePath, ios::out);
+        if(createStream.fail()) {
+            string error = string("File ") + dataFilePath + string(" doesn't exist and unable to create it!");
+            throw error;
+        }
+        createStream.close();
+    }
+    dataFileStream.open(dataFilePath, ios::in | ios::out | ios::binary | ios::ate);
     if(dataFileStream.fail()) {
         string error = "DataFileStream for mapt data storage could not be created.";
         throw error;
@@ -41,6 +52,11 @@ DataHandler::DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath) :
         }
         dataFileStream.seekg(0, dataFileStream.end);
     }
+}
+
+inline bool DataHandler::doesFileExist(const char* filePath) {
+    struct stat buffer;
+    return stat(filePath, &buffer) == 0;
 }
 
 /**
