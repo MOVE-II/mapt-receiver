@@ -99,3 +99,13 @@ inline bool DataHandler::doesFileExist(const char* filePath) {
     struct stat buffer;
     return stat(filePath, &buffer) == 0;
 }
+
+uint DataHandler::getBytesAvailableForRead() {
+    streampos readpos = dataFileStream.tellg();
+    streampos writepos = dataFileStream.tellp();
+    if(writepos < 0 || readpos < 0) {
+        string error = "Datafile stream is corrupted";
+        throw error;
+    }
+    return (uint) writepos - readpos;
+}

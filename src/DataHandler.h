@@ -36,6 +36,7 @@ private:
     S3TPHandler& s3tpHandler;
     void popData(char* data);
     void alignDataFile();
+    uint getBytesAvailableForRead();
     bool doesFileExist(const char* filePath);
     void initializeDataFile(const char* dataFilePath);
     void createFileIfNotExisting(const char* dataFilePath);
