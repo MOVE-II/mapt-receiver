@@ -27,6 +27,7 @@ private:
     const uint16_t maptDataPort;
 public:
     S3TPHandler();
+    void initialize();
     void send(char* data, int len);
     int receive(char* data, int maxLen);
 };

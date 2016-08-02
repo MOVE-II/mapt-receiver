@@ -21,6 +21,9 @@
 S3TPHandler::S3TPHandler() :
     s3tpSocket(-1),
     maptDataPort(1337) { //TODO: Add correct port!
+}
+
+void S3TPHandler::initialize() {
     s3tpSocket = s3tp_create();
     s3tp_connect(s3tpSocket, maptDataPort);
 }
