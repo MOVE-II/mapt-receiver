@@ -32,9 +32,8 @@ DataHandler::DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath) :
  * Writes received data to disk
  */
 void DataHandler::addData(char* data) {
-    fileMutex.lock();
+    unique_lock<mutex> lock(fileMutex);
     dataFileStream.write(data, MAPT_PACKAGE_SIZE);
-    fileMutex.unlock();
 }
 
 /**
@@ -42,9 +41,8 @@ void DataHandler::addData(char* data) {
  */
 void DataHandler::popData(char* data) {
     //TODO: wait if no data available
-    fileMutex.lock();
+    unique_lock<mutex> lock(fileMutex);
     dataFileStream.read(data, MAPT_PACKAGE_SIZE);
-    fileMutex.unlock();
 }
 
 /**
