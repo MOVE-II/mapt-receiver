@@ -22,6 +22,7 @@
 #include <tuple>
 #include <mutex>
 #include <fstream>
+#include <condition_variable>
 #include "S3TPHandler.h"
 
 #define MAPT_PACKAGE_SIZE 3616
@@ -34,6 +35,7 @@ private:
     mutex fileMutex;
     fstream dataFileStream;
     S3TPHandler& s3tpHandler;
+    condition_variable conditionVariable;
     void popData(char* data);
     void alignDataFile();
     uint getBytesAvailableForRead();

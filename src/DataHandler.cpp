@@ -34,14 +34,17 @@ DataHandler::DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath) :
 void DataHandler::addData(char* data) {
     unique_lock<mutex> lock(fileMutex);
     dataFileStream.write(data, MAPT_PACKAGE_SIZE);
+    conditionVariable.notify_one();
 }
 
 /**
  * Returns the next data package. Blocks until a package is available.
  */
 void DataHandler::popData(char* data) {
-    //TODO: wait if no data available
     unique_lock<mutex> lock(fileMutex);
+    while (getBytesAvailableForRead() < MAPT_PACKAGE_SIZE) {
+        conditionVariable.wait(lock);
+    }
     dataFileStream.read(data, MAPT_PACKAGE_SIZE);
 }
 
