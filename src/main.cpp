@@ -16,7 +16,7 @@
  **/
 
 #include <string>
-#include <thread>
+#include <future>
 #include <iostream>
 #include "TCPListener.h"
 #include "S3TPListener.h"
@@ -52,11 +52,11 @@ int main(int argc, char* argv[]) {
         MAPTPacketParser maptPacketParser(dataHandler);
         CommandHandler commandHandler(dataHandler);
         S3TPListener s3tpListener(s3tpHandler, commandHandler);
-        thread tcpReceiverThread(runTCPReceiverThread, &maptPacketParser);
+        future<void> tcpReceiverThread = async(launch::async, runTCPReceiverThread, &maptPacketParser);
         s3tpHandler.initialize();
-        thread s3tpListenerThread(runS3TPListenerThread, &s3tpListener);
-        tcpReceiverThread.join();
-        s3tpListenerThread.join();
+        future<void> s3tpListenerThread = async(launch::async, runS3TPListenerThread, &s3tpListener);
+        tcpReceiverThread.get();
+        s3tpListenerThread.get();
     } catch(string error) {
         cerr << "ERROR catched in main: " << error << endl;
     }
