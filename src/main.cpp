@@ -25,7 +25,10 @@
 
 using namespace std;
 
-void runTCPReceiverThread(MAPTPacketParser *maptPacketParser) {
+/**
+ * Continuously receives TCP Packets and stores them to the disk
+ */
+void receiveTCPPackets(MAPTPacketParser *maptPacketParser) {
     try {
         TCPListener tcpListener(*maptPacketParser, 1337);
         tcpListener.receiveData();
@@ -35,7 +38,10 @@ void runTCPReceiverThread(MAPTPacketParser *maptPacketParser) {
     }
 }
 
-void runS3TPListenerThread(S3TPListener* s3tpListener) {
+/**
+ * Continuously wait for commands from the ground station and handle them accordingly
+ */
+void receiveGroundStationCommands(S3TPListener *s3tpListener) {
     try {
         s3tpListener->waitForCommands();
     } catch (string error) {
@@ -52,9 +58,9 @@ int main(int argc, char* argv[]) {
         MAPTPacketParser maptPacketParser(dataHandler);
         CommandHandler commandHandler(dataHandler);
         S3TPListener s3tpListener(s3tpHandler, commandHandler);
-        future<void> tcpReceiverThread = async(launch::async, runTCPReceiverThread, &maptPacketParser);
+        future<void> tcpReceiverThread = async(launch::async, receiveTCPPackets, &maptPacketParser);
         s3tpHandler.initialize();
-        future<void> s3tpListenerThread = async(launch::async, runS3TPListenerThread, &s3tpListener);
+        future<void> s3tpListenerThread = async(launch::async, receiveGroundStationCommands, &s3tpListener);
         tcpReceiverThread.get();
         s3tpListenerThread.get();
     } catch(string error) {
