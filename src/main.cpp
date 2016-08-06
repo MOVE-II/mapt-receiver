@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
         CommandHandler commandHandler(dataHandler);
         S3TPListener s3tpListener(s3tpHandler, commandHandler);
         thread tcpReceiverThread(runTCPReceiverThread, &maptPacketParser);
+        s3tpHandler.initialize();
         thread s3tpListenerThread(runS3TPListenerThread, &s3tpListener);
         tcpReceiverThread.join();
         s3tpListenerThread.join();
