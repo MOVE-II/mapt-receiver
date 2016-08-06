@@ -34,8 +34,9 @@ void receiveTCPPackets(MAPTPacketParser *maptPacketParser) {
         tcpListener.receiveData();
     } catch (string error) {
         cerr << "ERROR in TCPReceiver thread: " << error << endl;
-        exit(1);
     }
+    cerr << "ERROR: TCPReceiver thread stopped unexpectedly!" << endl;
+    exit(1);
 }
 
 /**
@@ -46,8 +47,9 @@ void receiveGroundStationCommands(S3TPListener *s3tpListener) {
         s3tpListener->waitForCommands();
     } catch (string error) {
         cerr << "ERROR in S3TPListener thread: " << error << endl;
-        exit(1);
     }
+    cerr << "ERROR: S3TPListener thread stopped unexpectedly!" << endl;
+    exit(1);
 }
 
 /**
@@ -60,8 +62,9 @@ void sendDataToGroundStation(DataHandler *dataHandler) {
         }
     } catch (string error) {
         cerr << "ERROR in S3TP Sender thread: " << error << endl;
-        exit(1);
     }
+    cerr << "ERROR: S3TP Sender thread stopped unexpectedly!" << endl;
+    exit(1);
 }
 
 int main(int argc, char* argv[]) {
