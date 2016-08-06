@@ -33,6 +33,7 @@ class DataHandler {
 private:
     const char*dataFilePath;
     mutex fileMutex;
+    streampos readpos;
     fstream dataFileStream;
     S3TPHandler& s3tpHandler;
     condition_variable conditionVariable;

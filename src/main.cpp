@@ -50,8 +50,21 @@ void receiveGroundStationCommands(S3TPListener *s3tpListener) {
     }
 }
 
+/**
+ * Continuously send the received data to the ground station
+ */
+void sendDataToGroundStation(DataHandler *dataHandler) {
+    try {
+        while(true) {
+            dataHandler->sendData();
+        }
+    } catch (string error) {
+        cerr << "ERROR in S3TP Sender thread: " << error << endl;
+        exit(1);
+    }
+}
+
 int main(int argc, char* argv[]) {
-    //TODO Start thread that continuously send the received data to the ground station
     try {
         S3TPHandler s3tpHandler;
         DataHandler dataHandler(s3tpHandler, DATAFILE_PATH);
@@ -60,8 +73,10 @@ int main(int argc, char* argv[]) {
         S3TPListener s3tpListener(s3tpHandler, commandHandler);
         future<void> tcpReceiverThread = async(launch::async, receiveTCPPackets, &maptPacketParser);
         s3tpHandler.initialize();
+        future<void> s3tpSenderThread = async(launch::async, sendDataToGroundStation, &dataHandler);
         future<void> s3tpListenerThread = async(launch::async, receiveGroundStationCommands, &s3tpListener);
         tcpReceiverThread.get();
+        s3tpSenderThread.get();
         s3tpListenerThread.get();
     } catch(string error) {
         cerr << "ERROR catched in main: " << error << endl;

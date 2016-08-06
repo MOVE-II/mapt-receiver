@@ -23,6 +23,7 @@
 DataHandler::DataHandler(S3TPHandler& s3tpHandler, const char* dataFilePath) :
     dataFilePath(dataFilePath),
     fileMutex(),
+    readpos(-1),
     dataFileStream(),
     s3tpHandler(s3tpHandler){
     initializeDataFile(dataFilePath);
@@ -45,7 +46,9 @@ void DataHandler::popData(char* data) {
     while (getBytesAvailableForRead() < MAPT_PACKAGE_SIZE) {
         conditionVariable.wait(lock);
     }
+    dataFileStream.seekg(readpos);
     dataFileStream.read(data, MAPT_PACKAGE_SIZE);
+    readpos += MAPT_PACKAGE_SIZE;
 }
 
 /**
@@ -78,6 +81,8 @@ void DataHandler::initializeDataFile(const char* dataFilePath) {
         throw error;
     }
     alignDataFile();
+    dataFileStream.seekg(0, ios::end);
+    readpos = dataFileStream.tellg();
 }
 
 /**
@@ -94,7 +99,6 @@ void DataHandler::alignDataFile() {
             memset(zeroes, 0xFE, numZeroesToAdd);
             dataFileStream.write(zeroes, numZeroesToAdd);
         }
-        dataFileStream.seekg(0, dataFileStream.end);
     }
 }
 
@@ -104,7 +108,6 @@ inline bool DataHandler::doesFileExist(const char* filePath) {
 }
 
 uint DataHandler::getBytesAvailableForRead() {
-    streampos readpos = dataFileStream.tellg();
     streampos writepos = dataFileStream.tellp();
     if(writepos < 0 || readpos < 0) {
         string error = "Datafile stream is corrupted";
